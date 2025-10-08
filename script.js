@@ -22,23 +22,36 @@ const postAPI = async (peliculas) => {
         const {uri} = await res.json();
         return uri;
     } catch (err) {
-        alert("No se ha podido crear el endpoint.");
+        console.log("API no disponible, usando localStorage");
+        // Fallback to localStorage if API is not available
+        localStorage.setItem('peliculas', JSON.stringify(peliculas));
+        return 'localStorage';
     }
 };
 
 const getAPI = async () => {
     try {
-        if (!localStorage.URL) return [];
+        if (!localStorage.URL || localStorage.URL === 'localStorage') {
+            // Use localStorage fallback
+            const data = localStorage.getItem('peliculas');
+            return data ? JSON.parse(data) : mis_peliculas_iniciales;
+        }
         const res = await fetch(localStorage.URL);
         return await res.json();
     } catch (err) {
-        alert("No se ha podido leer la información.");
-        return [];
+        console.log("Error al leer de la API, usando localStorage");
+        const data = localStorage.getItem('peliculas');
+        return data ? JSON.parse(data) : mis_peliculas_iniciales;
     }
 };
 
 const updateAPI = async (peliculas) => {
     try {
+        if (!localStorage.URL || localStorage.URL === 'localStorage') {
+            // Use localStorage fallback
+            localStorage.setItem('peliculas', JSON.stringify(peliculas));
+            return;
+        }
         await fetch(localStorage.URL, {
             method: 'PUT',
             headers: {
@@ -47,7 +60,8 @@ const updateAPI = async (peliculas) => {
             body: JSON.stringify(peliculas)
         });
     } catch (err) {
-        alert("No se ha podido actualizar la información.");
+        console.log("Error al actualizar la API, usando localStorage");
+        localStorage.setItem('peliculas', JSON.stringify(peliculas));
     }
 };
 
