@@ -102,7 +102,7 @@
             <button class="index">
             Volver
             </button>
-           `;
+        </div>`;
     }
 
     const showView = (pelicula) => {
