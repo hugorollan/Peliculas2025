@@ -102,7 +102,7 @@
             <button class="index">
             Volver
             </button>
-           `;
+        </div>`;
     }
 
     const showView = (pelicula) => {
@@ -210,8 +210,5 @@
         else if (matchEvent(ev, '.reset'))  resetContr  ();
     })
     
-    
     // Inicialización        
     document.addEventListener('DOMContentLoaded', initContr);
-// Inicialización        
-document.addEventListener('DOMContentLoaded', initContr);
