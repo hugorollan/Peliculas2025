@@ -61,30 +61,28 @@
     }
 
     const editView = (i, pelicula) => {
-        return `<h2>Editar Película </h2>
-        <div class="field">
-        Título <br>
-        <input  type="text" id="titulo" placeholder="Título" 
-            value="${pelicula.titulo}">
-        </div>
-        <div class="field">
-        Director <br>
-        <input  type="text" id="director" placeholder="Director" 
-            value="${pelicula.director}">
-        </div>
-        <div class="field">
-        Miniatura <br>
-        <input  type="text" id="miniatura" placeholder="URL de la miniatura" 
-            value="${pelicula.miniatura}">
-        </div>
-        <div class="actions">
-            <button class="update" data-my-id="${i}">
-            Actualizar
-            </button>
-            <button class="index">
-            Volver
-            </button>
-           `;
+        return `
+        <div class="modal-bg">
+          <div class="modal">
+            <h2>Editar Película</h2>
+            <div class="field" style="width:100%; margin-bottom:10px;">
+                Título <br>
+                <input type="text" id="titulo" placeholder="Título" value="${pelicula.titulo}" style="width:100%;">
+            </div>
+            <div class="field" style="width:100%; margin-bottom:10px;">
+                Director <br>
+                <input type="text" id="director" placeholder="Director" value="${pelicula.director}" style="width:100%;">
+            </div>
+            <div class="field" style="width:100%; margin-bottom:10px;">
+                Miniatura <br>
+                <input type="text" id="miniatura" placeholder="URL de la miniatura" value="${pelicula.miniatura}" style="width:100%;">
+            </div>
+            <div class="actions" style="width:100%; display:flex; justify-content:center; gap:10px;">
+                <button class="update" data-my-id="${i}">Actualizar</button>
+                <button class="index">Volver</button>
+            </div>
+          </div>
+        </div>`;
     }
 
     const showView = (pelicula) => {
