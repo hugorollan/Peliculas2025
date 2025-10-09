@@ -92,7 +92,7 @@
                         <div class="modal-bg">
                             <div class="modal">
                                 <h2 style="margin-bottom:15px;">${pelicula.titulo || "<em>Sin título</em>"}</h2>
-                                <img src="${pelicula.miniatura}" onerror="this.src='files/placeholder.png'" style="max-width:200px; display:block; margin:0 auto 15px auto;"/>
+                                <img src="${pelicula.miniatura}" onerror="this.src='files/placeholder.png'" />
                                 <p><strong>Director:</strong> ${pelicula.director || "<em>Sin director</em>"}</p>
                                 <div class="actions">
                                     <button class="index">Volver</button>
