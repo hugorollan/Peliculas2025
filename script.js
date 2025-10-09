@@ -41,12 +41,13 @@
                     view += `
                 <div class="movie">
                      <div class="movie-img">
-                        <img class="show" data-my-id="${i}" src="${peliculas[i].miniatura}" onerror="this.src='files/placeholder.png'"/>
+                        <img src="${peliculas[i].miniatura}" onerror="this.src='files/placeholder.png'"/>
                      </div>
                      <div class="title">
                              ${peliculas[i].titulo || "<em>Sin título</em>"}
                      </div>
                      <div class="actions">
+                             <button class="show" data-my-id="${i}">ver</button>
                              <button class="edit" data-my-id="${i}">editar</button>
                              <button class="delete" data-my-id="${i}">borrar</button>
                         </div>
@@ -87,15 +88,17 @@
     }
 
     const showView = (pelicula) => {
-        return `
-         <h2>${pelicula.titulo || "<em>Sin título</em>"}</h2>
-         <div>
-        <img src="${pelicula.miniatura}" onerror="this.src='files/placeholder.png'" style="max-width:200px"/>
-         </div>
-         <p><strong>Director:</strong> ${pelicula.director || "<em>Sin director</em>"}</p>
-         <div class="actions">
-        <button class="index">Volver</button>
-         </div>`;
+                        return `
+                        <div class="modal-bg">
+                            <div class="modal">
+                                <h2 style="margin-bottom:15px;">${pelicula.titulo || "<em>Sin título</em>"}</h2>
+                                <img src="${pelicula.miniatura}" onerror="this.src='files/placeholder.png'" style="max-width:200px; display:block; margin:0 auto 15px auto;"/>
+                                <p><strong>Director:</strong> ${pelicula.director || "<em>Sin director</em>"}</p>
+                                <div class="actions">
+                                    <button class="index">Volver</button>
+                                </div>
+                            </div>
+                        </div>`;
     }
 
     const newView = () => {
@@ -181,9 +184,9 @@
     }
 
     const resetContr = async () => {
-        if (confirm("¿Seguro que quieres reiniciar la lista de películas?")) {
-        await updateAPI(mis_peliculas_iniciales);
-        indexContr();
+        if (confirm("¿Seguro que quieres eliminar todas las películas?")) {
+            await updateAPI([]);
+            indexContr();
         }
     }
 
