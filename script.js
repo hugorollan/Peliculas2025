@@ -8,74 +8,55 @@
 
     let mis_peliculas = [];
 
+    // Guardar y leer películas usando solo localStorage
     const postAPI = async (peliculas) => {
-        try {
-        const res = await fetch("https://myjson.dit.upm.es/api/bins", {
-          method: 'POST', 
-          headers:{
-              "Content-Type": "application/json",
-          },
-          body: JSON.stringify(peliculas)
-        });
-        const {uri} = await res.json();
-        return uri;               
-        } catch (err) {
-        alert("No se ha podido crear el endpoint.")
-        }
+        localStorage.setItem('mis_peliculas', JSON.stringify(peliculas));
+        return true;
     }
     const getAPI = async () => {
+        const pelis = localStorage.getItem('mis_peliculas');
+        if (!pelis) return [];
         try {
-        if (!localStorage.URL) return [];
-        const res = await fetch(localStorage.URL);
-        return await res.json();
-        } catch (err) {
-        alert("No se ha podido leer la información.");
-        return [];
+            return JSON.parse(pelis);
+        } catch {
+            return [];
         }
     }
     const updateAPI = async (peliculas) => {
-        try {
-        await fetch(localStorage.URL, {
-            method: 'PUT',
-            headers: {
-            "Content-Type": "application/json",
-            },
-            body: JSON.stringify(peliculas)
-        });
-        } catch (err) {
-        alert("No se ha podido actualizar la información.");
-        }
+        localStorage.setItem('mis_peliculas', JSON.stringify(peliculas));
+        return true;
     }
 
     // VISTAS
 
     const indexView = (peliculas) => {
-        let i=0;
-        let view = "";
+                let i=0;
+                let view = "";
 
-        while(i < peliculas.length) {
-          view += `
-        <div class="movie">
-           <div class="movie-img">
-            <img class="show" data-my-id="${i}" src="${peliculas[i].miniatura}" onerror="this.src='files/placeholder.png'"/>
-           </div>
-           <div class="title">
-               ${peliculas[i].titulo || "<em>Sin título</em>"}
-           </div>
-           <div class="actions">
-               <button class="edit" data-my-id="${i}">editar</button>
-               <button class="delete" data-my-id="${i}">borrar</button>
-            </div>
-        </div>\n`;
-          i = i + 1;
-        };
+                if (peliculas.length === 0) {
+                        view += `<div style='color:#888; margin:20px 0;'>No hay películas</div>`;
+                }
 
-        view += `<div class="actions">
-            <button class="new">Añadir</button>
-            <button class="reset">Reset</button>
-            </div>`;
+                while(i < peliculas.length) {
+                    view += `
+                <div class="movie">
+                     <div class="movie-img">
+                        <img class="show" data-my-id="${i}" src="${peliculas[i].miniatura}" onerror="this.src='files/placeholder.png'"/>
+                     </div>
+                     <div class="title">
+                             ${peliculas[i].titulo || "<em>Sin título</em>"}
+                     </div>
+                     <div class="actions">
+                             <button class="edit" data-my-id="${i}">editar</button>
+                             <button class="delete" data-my-id="${i}">borrar</button>
+                        </div>
+                </div>\n`;
+                    i = i + 1;
+                }
 
-        return view;
+            // Eliminado el bloque de acciones inferior para evitar menú duplicado
+
+                return view;
     }
 
     const editView = (i, pelicula) => {
@@ -118,37 +99,48 @@
     }
 
     const newView = () => {
-        return `<h2>Crear Película</h2>
-        <div class="field">
-            Título <br>
-            <input type="text" id="titulo" placeholder="Título">
-        </div>
-        <div class="field">
-            Director <br>
-            <input type="text" id="director" placeholder="Director">
-        </div>
-        <div class="field">
-            Miniatura <br>
-            <input type="text" id="miniatura" placeholder="URL de la miniatura">
-        </div>
-        <div class="actions">
-            <button class="create">Crear</button>
-            <button class="index">Volver</button>
+        return `
+        <div class="modal-bg">
+          <div class="modal">
+            <h2>Crear Película</h2>
+            <div class="field">
+                Título <br>
+                <input type="text" id="titulo" placeholder="Título">
+            </div>
+            <div class="field">
+                Director <br>
+                <input type="text" id="director" placeholder="Director">
+            </div>
+            <div class="field">
+                Miniatura <br>
+                <input type="text" id="miniatura" placeholder="URL de la miniatura">
+            </div>
+            <div class="actions">
+                <button class="create">Crear</button>
+                <button class="index">Volver</button>
+            </div>
+          </div>
         </div>`;
     }
 
     // CONTROLADORES 
 
     const initContr = async () => {
-        if (!localStorage.URL || localStorage.URL === "undefined") {
-        localStorage.URL = await postAPI(mis_peliculas_iniciales);
+        // Si no hay películas en localStorage, inicializa con las iniciales
+        if (!localStorage.getItem('mis_peliculas')) {
+            await postAPI(mis_peliculas_iniciales);
         }
         indexContr();
     }
 
     const indexContr = async () => {
-        mis_peliculas = await getAPI() || [];
-        document.getElementById('main').innerHTML = await indexView(mis_peliculas);
+    let pelis = await getAPI();
+    // Si la respuesta no es un array, fuerza array vacío
+    if (!Array.isArray(pelis)) pelis = [];
+    // Si la respuesta es un objeto vacío, también fuerza array vacío
+    if (typeof pelis === 'object' && pelis !== null && Object.keys(pelis).length === 0) pelis = [];
+    mis_peliculas = pelis;
+    document.getElementById('main').innerHTML = indexView(mis_peliculas);
     }
 
     const showContr = (i) => {
