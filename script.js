@@ -124,6 +124,52 @@
         </div>`;
     }
 
+    // Vista de búsqueda de películas en TMDb
+    const searchView = () => {
+        return `
+        <div class="modal-bg">
+          <div class="modal">
+            <h2>Buscar Película en TMDb</h2>
+            <div class="field">
+                Título o palabra clave <br>
+                <input type="text" id="search-query" placeholder="Buscar película..." style="width:100%;">
+            </div>
+            <div class="actions" style="margin-top:10px;">
+                <button class="search">Buscar</button>
+                <button class="index">Volver</button>
+            </div>
+            <div id="search-error" style="color:red; margin-top:10px;"></div>
+          </div>
+        </div>`;
+    }
+
+    // Vista de resultados de búsqueda TMDb
+    const resultsView = (resultados) => {
+        let view = `<div class='modal-bg'><div class='modal'><h2>Resultados de búsqueda</h2>`;
+        if (!resultados || resultados.length === 0) {
+            view += `<div style='color:#888; margin:20px 0;'>No se encontraron resultados.</div>`;
+        } else {
+            view += `<div class='results-grid'>`;
+            resultados.forEach((peli, idx) => {
+                view += `
+                <div class="movie">
+                    <div class="movie-img">
+                        <img src="${peli.poster_path ? 'https://image.tmdb.org/t/p/w200' + peli.poster_path : 'files/placeholder.png'}" />
+                    </div>
+                    <div class="title">${peli.title || '<em>Sin título</em>'}</div>
+                    <div class="desc">${peli.release_date ? 'Estreno: ' + peli.release_date : ''}</div>
+                    <div class="desc">${peli.overview ? peli.overview : ''}</div>
+                    <div class="actions">
+                        <button class="add-from-api" data-my-id="${idx}">Añadir</button>
+                    </div>
+                </div>`;
+            });
+            view += `</div>`;
+        }
+        view += `<div class="actions" style="margin-top:15px;"><button class="search">Nueva búsqueda</button><button class="index">Volver</button></div></div></div>`;
+        return view;
+    }
+
     // CONTROLADORES 
 
     const initContr = async () => {
@@ -131,6 +177,70 @@
         if (!localStorage.getItem('mis_peliculas')) {
             await postAPI(mis_peliculas_iniciales);
         }
+        indexContr();
+    }
+
+    // Controlador para mostrar la vista de búsqueda
+    const searchViewContr = () => {
+        document.getElementById('main').innerHTML = searchView();
+        // Permitir buscar con Enter
+        setTimeout(() => {
+            const input = document.getElementById('search-query');
+            if (input) {
+                input.addEventListener('keydown', ev => {
+                    if (ev.key === 'Enter') {
+                        searchContr(input.value);
+                    }
+                });
+            }
+        }, 100);
+    }
+
+    // Controlador para buscar películas en TMDb
+    let resultadosAPI = [];
+    const searchContr = async (query) => {
+        const errorDiv = document.getElementById('search-error');
+        if (!query || query.trim().length < 2) {
+            if (errorDiv) errorDiv.textContent = 'Introduce al menos 2 caracteres.';
+            return;
+        }
+        if (errorDiv) errorDiv.textContent = '';
+        const options = {
+            method: 'GET',
+            headers: {
+                accept: 'application/json',
+                Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIzOTgxNWVjZTI4ZjcyNWJlZGRmY2Y3OGE0YzRjZGU0ZiIsIm5iZiI6MTc2MDQ1NjUxNS4xNDcsInN1YiI6IjY4ZWU2ZjQzNDYzMzQ0Yjg0MTlkZjQ3MCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.ejdXz4pm0dZn0OAVJvJ16R8SwNAa-MBkO_yttUiblLk'
+            }
+        };
+        try {
+            const resp = await fetch('https://api.themoviedb.org/3/search/movie?query=' + encodeURIComponent(query), options);
+            const data = await resp.json();
+            resultadosAPI = Array.isArray(data.results) ? data.results : [];
+            document.getElementById('main').innerHTML = resultsView(resultadosAPI);
+        } catch (err) {
+            if (errorDiv) errorDiv.textContent = 'Error al conectar con TMDb.';
+        }
+    }
+
+    // Controlador para añadir película desde API a la base local
+    const addFromAPIContr = async (idx) => {
+        const peli = resultadosAPI[idx];
+        if (!peli) return;
+        // Evitar duplicados por título y año
+        const existe = mis_peliculas.some(mp => mp.titulo === peli.title && mp.director === (peli.director || ''));
+        if (existe) {
+            alert('La película ya existe en la base de datos local.');
+            return;
+        }
+        // Estructura compatible con la base local
+        const nuevaPeli = {
+            titulo: peli.title,
+            director: '', // TMDb no da director en búsqueda, se puede ampliar con otra consulta
+            miniatura: peli.poster_path ? 'https://image.tmdb.org/t/p/w200' + peli.poster_path : 'files/placeholder.png'
+        };
+        mis_peliculas.push(nuevaPeli);
+        await updateAPI(mis_peliculas);
+        alert('Película añadida correctamente.');
         indexContr();
     }
 
@@ -201,10 +311,28 @@
         else if (matchEvent(ev, '.create')) createContr ();
         else if (matchEvent(ev, '.delete')) deleteContr (myId(ev));
         else if (matchEvent(ev, '.reset'))  resetContr  ();
+            else if (matchEvent(ev, '.search')) {
+                const input = document.getElementById('search-query');
+                if (input) searchContr(input.value);
+                else searchViewContr(); // Si no hay input, es botón de nueva búsqueda
+            }
+            else if (matchEvent(ev, '.add-from-api')) addFromAPIContr(myId(ev));
     })
     
     
     // Inicialización        
     document.addEventListener('DOMContentLoaded', initContr);
+    // Botón para acceder a la búsqueda desde la interfaz principal
+    setTimeout(() => {
+        const mainDiv = document.getElementById('main');
+        if (mainDiv) {
+            const btn = document.createElement('button');
+            btn.textContent = 'Buscar en TMDb';
+            btn.className = 'search';
+            btn.style = 'margin:15px 0;';
+            btn.onclick = () => searchViewContr();
+            mainDiv.parentNode.insertBefore(btn, mainDiv);
+        }
+    }, 500);
 // Inicialización        
 document.addEventListener('DOMContentLoaded', initContr);
