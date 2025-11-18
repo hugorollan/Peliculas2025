@@ -395,6 +395,22 @@
         else if (matchEvent(ev, '.search-view'))  searchViewContr  ();
         else if (matchEvent(ev, '.search'))       searchContr      ();
         else if (matchEvent(ev, '.add-from-api')) addFromAPIContr  (ev);
+            else if (matchEvent(ev, '.keywords')) {
+                // Se espera que el botón tenga data-movie-id
+                const movieId = ev.target.dataset.movieId;
+                if (movieId) keywordsView(movieId);
+            }
+            else if (matchEvent(ev, '.add-keyword')) {
+                const kw = ev.target.dataset.keyword;
+                if (kw) addKeywordToList(kw);
+            }
+            else if (matchEvent(ev, '.my-keywords')) {
+                myKeywordsView();
+            }
+            else if (matchEvent(ev, '.remove-keyword')) {
+                const kw = ev.target.dataset.keyword;
+                if (kw) removeKeywordFromList(kw);
+            }
     })
 
     // Soporte para presionar Enter en el campo de búsqueda
