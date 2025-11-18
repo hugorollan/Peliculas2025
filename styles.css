@@ -103,10 +103,19 @@ footer {
 /* Estilos para las etiquetas de palabras clave */
 .keyword-tag {
     background-color: #e0e0e0;
-    padding: 6px 12px;
-    border-radius: 16px;
-    font-size: 0.85rem;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
     color: #333;
     display: inline-block;
     margin: 4px;
+    cursor: pointer; /* Indica que es clicable */
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.keyword-tag:hover {
+    background-color: #6200ee;
+    color: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
