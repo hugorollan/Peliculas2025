@@ -99,3 +99,14 @@ footer {
     font-size: 1rem;
     border-top: 1px solid #444;
 }
+
+/* Estilos para las etiquetas de palabras clave */
+.keyword-tag {
+    background-color: #e0e0e0;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 0.85rem;
+    color: #333;
+    display: inline-block;
+    margin: 4px;
+}
