@@ -99,6 +99,7 @@
                 ${pelicula.generos && pelicula.generos.length > 0 ? `<p><strong>Géneros:</strong> ${pelicula.generos.join(', ')}</p>` : ''}
                 ${pelicula.resumen ? `<p style='margin:10px 0; color:#444; font-size:13px;'><strong>Resumen:</strong> ${pelicula.resumen}</p>` : ''}
                 <div class="actions">
+                    ${(pelicula.id ? `<button class="keywords" data-movie-id="${pelicula.id}">Palabras clave</button>` : '')}
                     <button class="index">Volver</button>
                 </div>
             </div>
@@ -171,6 +172,7 @@
                     <p style="font-size: 11px; margin: 5px 0; color: #666;">Año: ${releaseYear}</p>
                     <div class="actions">
                         <button class="add-from-api" data-movie='${JSON.stringify(pelicula).replace(/'/g, "&apos;")}'>Añadir</button>
+                            <button class="keywords" data-movie-id="${pelicula.id}">Palabras clave</button>
                     </div>
                 </div>`;
             });
@@ -360,6 +362,7 @@
             const rating = typeof movieData.vote_average === 'number' ? movieData.vote_average : '';
 
             const nuevaPelicula = {
+                id: movieData.id,
                 titulo: movieData.title,
                 director: director,
                 miniatura: posterUrl,
