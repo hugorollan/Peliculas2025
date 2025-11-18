@@ -146,10 +146,11 @@ const searchView = () => {
     </div>`;
 }
 
-const resultsView = (resultados) => {
+// Modificado para aceptar un título personalizado
+const resultsView = (resultados, tituloPagina = "Resultados de la búsqueda") => {
     let view = `
     <div style="width: 100%; padding: 20px;">
-        <h2 style="text-align: center; color: var(--primary);">Resultados de la búsqueda</h2>`;
+        <h2 style="text-align: center; color: var(--primary);">${tituloPagina}</h2>`;
     
     if (!resultados || resultados.length === 0) {
         view += `<div style='color:#888; margin:20px 0; text-align: center;'>No se encontraron películas</div>`;
@@ -359,7 +360,7 @@ const addFromAPIContr = async (ev) => {
     }
 }
 
-// Controlador de Palabras Clave (IMPLEMENTADO)
+// Controlador de Palabras Clave (MODIFICADO para ser clicables)
 const keywordsView = async (movieId) => {
     const options = {
         method: 'GET',
@@ -380,9 +381,10 @@ const keywordsView = async (movieId) => {
         <div class="modal-bg">
             <div class="modal">
                 <h2>Palabras Clave</h2>
+                <p style="font-size:12px; margin-bottom:15px;">Haz clic en una etiqueta para ver películas similares</p>
                 <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin: 20px 0;">
                     ${keywords.length > 0 
-                        ? keywords.map(kw => `<span class="keyword-tag">${kw.name}</span>`).join('')
+                        ? keywords.map(kw => `<button class="keyword-tag search-by-keyword" data-keyword-id="${kw.id}" data-keyword-name="${kw.name}">${kw.name}</button>`).join('')
                         : '<p>No hay palabras clave disponibles.</p>'}
                 </div>
                 <div class="actions">
@@ -398,7 +400,36 @@ const keywordsView = async (movieId) => {
     }
 }
 
-// Placeholders para funciones futuras (para evitar errores en el Router)
+// NUEVO: Buscar películas por palabra clave
+const searchByKeywordContr = async (keywordId, keywordName) => {
+    const options = {
+        method: 'GET',
+        headers: {
+            accept: 'application/json',
+            Authorization: `Bearer ${TMDB_API_KEY}`
+        }
+    };
+
+    try {
+        // Usamos el endpoint discover para filtrar por keyword
+        const response = await fetch(`https://api.themoviedb.org/3/discover/movie?with_keywords=${keywordId}&language=es-ES&sort_by=popularity.desc`, options);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Reutilizamos resultsView pero con un título personalizado
+        document.getElementById('main').innerHTML = resultsView(data.results, `Películas sobre: "${keywordName}"`);
+        
+    } catch (err) {
+        console.error(err);
+        alert('Error al buscar películas por palabra clave.');
+    }
+}
+
+// Placeholders para funciones futuras
 const addKeywordToList = (kw) => { console.log("Añadir palabra clave:", kw); }
 const myKeywordsView = () => { console.log("Ver mis palabras clave"); }
 const removeKeywordFromList = (kw) => { console.log("Eliminar palabra clave:", kw); }
@@ -423,6 +454,11 @@ document.addEventListener('click', ev => {
     else if (matchEvent(ev, '.keywords')) {
         const movieId = ev.target.dataset.movieId;
         if (movieId) keywordsView(movieId);
+    }
+    else if (matchEvent(ev, '.search-by-keyword')) {
+        const kwId = ev.target.dataset.keywordId;
+        const kwName = ev.target.dataset.keywordName;
+        if (kwId) searchByKeywordContr(kwId, kwName);
     }
     else if (matchEvent(ev, '.add-keyword')) {
         const kw = ev.target.dataset.keyword;
