@@ -129,24 +129,46 @@ const newView = () => {
     </div>`;
 }
 
+// VISTA DE BÚSQUEDA MODIFICADA
 const searchView = () => {
     return `
     <div class="modal-bg">
       <div class="modal">
-        <h2>Buscar Película en TMDb</h2>
+        <h2>Buscar en TMDb</h2>
         <div class="field">
-            Título de la película <br>
-            <input type="text" id="search-query" placeholder="Ej: Inception">
+            Término de búsqueda <br>
+            <input type="text" id="search-query" placeholder="Ej: Alien">
         </div>
         <div class="actions">
-            <button class="search">Buscar</button>
+            <button class="search">Buscar Película</button>
+            <button class="search-keyword-btn">Buscar Keyword</button>
             <button class="index">Volver</button>
         </div>
       </div>
     </div>`;
 }
 
-// Modificado para aceptar un título personalizado
+// Nueva vista para mostrar resultados de keywords
+const keywordSearchResultsView = (keywords, query) => {
+    let html = `
+    <div class="modal-bg">
+        <div class="modal">
+            <h2>Keywords encontradas para: "${query}"</h2>
+            <p style="font-size:12px; margin-bottom:15px;">Selecciona una keyword para ver películas relacionadas</p>
+            <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin: 20px 0;">
+                ${keywords.length > 0 
+                    ? keywords.map(kw => `<button class="keyword-tag search-by-keyword" data-keyword-id="${kw.id}" data-keyword-name="${kw.name}">${kw.name}</button>`).join('')
+                    : '<p>No se encontraron coincidencias.</p>'}
+            </div>
+            <div class="actions">
+                <button class="search-view">Volver a buscar</button>
+                <button class="index">Volver al inicio</button>
+            </div>
+        </div>
+    </div>`;
+    return html;
+}
+
 const resultsView = (resultados, tituloPagina = "Resultados de la búsqueda") => {
     let view = `
     <div style="width: 100%; padding: 20px;">
@@ -288,6 +310,41 @@ const searchContr = async () => {
     }
 }
 
+// NUEVO: Controlador para buscar Keywords
+const searchKeywordContr = async () => {
+    const query = document.getElementById('search-query').value.trim();
+    
+    if (!query) {
+        alert('Por favor, ingresa un término para buscar palabras clave');
+        return;
+    }
+
+    const options = {
+        method: 'GET',
+        headers: {
+            accept: 'application/json',
+            Authorization: `Bearer ${TMDB_API_KEY}`
+        }
+    };
+
+    try {
+        const response = await fetch(`https://api.themoviedb.org/3/search/keyword?query=${encodeURIComponent(query)}&page=1`, options);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Mostramos las keywords encontradas usando una vista específica
+        document.getElementById('main').innerHTML = keywordSearchResultsView(data.results, query);
+        
+    } catch (err) {
+        console.error(err);
+        alert('Error al buscar palabras clave.');
+    }
+}
+
 const addFromAPIContr = async (ev) => {
     try {
         const movieData = JSON.parse(ev.target.dataset.movie.replace(/&apos;/g, "'"));
@@ -360,7 +417,6 @@ const addFromAPIContr = async (ev) => {
     }
 }
 
-// Controlador de Palabras Clave (MODIFICADO para ser clicables)
 const keywordsView = async (movieId) => {
     const options = {
         method: 'GET',
@@ -400,7 +456,6 @@ const keywordsView = async (movieId) => {
     }
 }
 
-// NUEVO: Buscar películas por palabra clave
 const searchByKeywordContr = async (keywordId, keywordName) => {
     const options = {
         method: 'GET',
@@ -411,7 +466,6 @@ const searchByKeywordContr = async (keywordId, keywordName) => {
     };
 
     try {
-        // Usamos el endpoint discover para filtrar por keyword
         const response = await fetch(`https://api.themoviedb.org/3/discover/movie?with_keywords=${keywordId}&language=es-ES&sort_by=popularity.desc`, options);
         
         if (!response.ok) {
@@ -419,8 +473,6 @@ const searchByKeywordContr = async (keywordId, keywordName) => {
         }
         
         const data = await response.json();
-        
-        // Reutilizamos resultsView pero con un título personalizado
         document.getElementById('main').innerHTML = resultsView(data.results, `Películas sobre: "${keywordName}"`);
         
     } catch (err) {
@@ -429,7 +481,6 @@ const searchByKeywordContr = async (keywordId, keywordName) => {
     }
 }
 
-// Placeholders para funciones futuras
 const addKeywordToList = (kw) => { console.log("Añadir palabra clave:", kw); }
 const myKeywordsView = () => { console.log("Ver mis palabras clave"); }
 const removeKeywordFromList = (kw) => { console.log("Eliminar palabra clave:", kw); }
@@ -450,6 +501,7 @@ document.addEventListener('click', ev => {
     else if (matchEvent(ev, '.reset'))        resetContr       ();
     else if (matchEvent(ev, '.search-view'))  searchViewContr  ();
     else if (matchEvent(ev, '.search'))       searchContr      ();
+    else if (matchEvent(ev, '.search-keyword-btn')) searchKeywordContr(); // NUEVO BOTÓN
     else if (matchEvent(ev, '.add-from-api')) addFromAPIContr  (ev);
     else if (matchEvent(ev, '.keywords')) {
         const movieId = ev.target.dataset.movieId;
@@ -475,6 +527,8 @@ document.addEventListener('click', ev => {
 
 document.addEventListener('keypress', ev => {
     if (ev.key === 'Enter' && ev.target.id === 'search-query') {
+        // Por defecto hace búsqueda normal al dar Enter, 
+        // pero el usuario puede hacer clic en el botón de keyword si prefiere
         searchContr();
     }
 })

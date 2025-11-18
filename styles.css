@@ -119,3 +119,14 @@ footer {
     color: white;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
+
+/* Botón de búsqueda por keyword específico */
+button.search-keyword-btn {
+    border-color: #29b6f6;
+    color: #0277bd;
+}
+
+button.search-keyword-btn:hover {
+    background: #29b6f6;
+    color: white;
+}
