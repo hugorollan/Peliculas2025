@@ -399,8 +399,9 @@
         else if (matchEvent(ev, '.search'))       searchContr      ();
         else if (matchEvent(ev, '.add-from-api')) addFromAPIContr  (ev);
             else if (matchEvent(ev, '.keywords')) {
-                // Se espera que el botón tenga data-movie-id
+                // Depuración: mostrar el id en consola
                 const movieId = ev.target.dataset.movieId;
+                console.log('ID para palabras clave:', movieId);
                 if (movieId) keywordsView(movieId);
             }
             else if (matchEvent(ev, '.add-keyword')) {
